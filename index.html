@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quickies for admission journey</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js"></script>
+    <link rel="icon" type="image/x-icon" href="ghost.jpg" />
+    <script src="//code.jquery.com/jquery.min.js"></script>
+  </head>
+  <body class="home">
+
+    <!-- Navigation Bar -->
+    <script>
+    $.get("navbar.html", function(data){
+        $("#navbar").replaceWith(data);
+    });
+    </script>
+    
+    <div id="navbar"></div>
+
+    <!-- Body -->
+
+    <!-- Websites and links -->
+    <section>
+      <h1>Websites and Links</h1>
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Username/ID</th>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://udvash.com/HomePage" target="_blank"
+              ><button>Udvash</button></a
+            >
+          </td>
+          <td>2210243</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://aapathshala.com/" target="_blank"
+              ><button>AAPathshala</button></a
+            >
+          </td>
+          <td>aap52816</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://chorcha.net/" target="_blank"
+              ><button>Chorcha</button></a
+            >
+          </td>
+          <td>01760504151</td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <button onclick="Footer()" style="float: right">About This Site</button>
+      <p id="footer" style="display: none">
+        This site is built from scratch by Ibnul Abrar Shahriar Seam and it is
+        developed solely for personal use. I have enrolled to course(s) related
+        to these materials. Please don't use this site. Here, I kept contents
+        from different online platforms including
+        <a href="https://udvash.com/">Udvash</a>,
+        <a href="https://aapathshala.com/">Academic & Admission Pathshala</a>,
+        <a href="https://chorcha.net/">Chorcha</a>,
+        <a href="https://www.facebook.com/groups/440561993810965/"
+          >Learn with Hemel Bhai</a
+        >
+        etc. These contents belong to them. I don't claim ownership of any of
+        these and I don't intend to use these for commercial use. If anyone
+        finds this site as a infringement of copyright please
+        <a href="mailto:i.a.shahriarseam+githubAdmission@gmail.com">contact me.</a>
+      </p>
+    </footer>
+  </body>
+</html>
