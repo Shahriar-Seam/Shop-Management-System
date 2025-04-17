@@ -33,12 +33,12 @@ $db = $database->getConnection();
             </h2>
             <div class="d-flex gap-2">
                 <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                    <input type="date" id="dateFrom" class="form-control" placeholder="From">
+                    <span class="input-group-text">From Date&nbsp;<i class="fas fa-calendar"></i></span>
+                    <input type="date" id="dateFrom" class="form-control" placeholder="From Date">
                 </div>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                    <input type="date" id="dateTo" class="form-control" placeholder="To">
+                    <span class="input-group-text">To Date&nbsp;<i class="fas fa-calendar"></i></span>
+                    <input type="date" id="dateTo" class="form-control" placeholder="To Date">
                 </div>
                 <select class="form-select" id="typeFilter">
                     <option value="">All Types</option>

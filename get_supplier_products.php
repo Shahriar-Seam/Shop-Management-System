@@ -28,7 +28,6 @@ try {
                        class="form-control price" min="0.01" step="0.01" 
                        value="" onchange="calculateTotal()">
             </td>
-            <td class="row-total">৳0.00</td>
         </tr>
         <?php
     }

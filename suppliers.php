@@ -90,6 +90,9 @@ $db = $database->getConnection();
                                             <button class="btn btn-sm btn-success me-2" onclick="orderFromSupplier(<?= $row['company_id'] ?>)">
                                                 <i class="fas fa-shopping-cart"></i> Order
                                             </button>
+                                            <button class="btn btn-sm btn-info me-2" onclick="viewOrderHistory(<?= $row['company_id'] ?>)">
+                                                <i class="fas fa-history"></i> Order History
+                                            </button>
                                             <button class="btn btn-sm btn-warning me-2" onclick="updateSalesperson(<?= $row['company_id'] ?>)">
                                                 <i class="fas fa-user-edit"></i> Update Salesperson
                                             </button>
@@ -206,6 +209,111 @@ $db = $database->getConnection();
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order History Modal -->
+        <div class="modal fade" id="orderHistoryModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Order History</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount Paid</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orderHistoryBody">
+                                    <!-- History will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Details Modal -->
+        <div class="modal fade" id="orderDetailsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Order Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-4">
+                            <h6>Supplier Information</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>Name:</strong> <span id="supplierName"></span></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Phone:</strong> <span id="supplierPhone"></span></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Address:</strong> <span id="supplierAddress"></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Order Information</h6>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p><strong>Order Date:</strong> <span id="orderDate"></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Salesperson Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Name:</strong> <span id="salespersonName"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Phone:</strong> <span id="salespersonPhone"></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Quantity</th>
+                                        <th>Total Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orderProductsBody">
+                                    <!-- Products will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4 text-end">
+                            <h5>Total Amount: <span id="totalAmount" class="text-primary"></span></h5>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="printOrderDetails()">
+                            <i class="fas fa-print me-2"></i>Print
+                        </button>
                     </div>
                 </div>
             </div>
@@ -428,6 +536,267 @@ $db = $database->getConnection();
                     console.error('Error:', error);
                     showToast('An error occurred while loading salesperson history', 'error');
                 });
+        }
+
+        function viewOrderHistory(supplierId) {
+            console.log('Viewing order history for supplier:', supplierId);
+            
+            fetch(`get_order_history.php?supplier_id=${supplierId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const tbody = document.getElementById('orderHistoryBody');
+                        tbody.innerHTML = '';
+                        
+                        data.orders.forEach(order => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${order.order_date}</td>
+                                <td>৳${order.amount_paid.toLocaleString()}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="viewOrderDetails(${order.order_id})">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </button>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('orderHistoryModal'));
+                        modal.show();
+                    } else {
+                        showToast(data.message || 'Error loading order history', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('An error occurred while loading order history', 'error');
+                });
+        }
+
+        function viewOrderDetails(orderId) {
+            fetch(`get_order_details.php?order_id=${orderId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const order = data.order;
+                        const products = data.products;
+
+                        // Set supplier information
+                        document.getElementById('supplierName').textContent = order.company_name;
+                        document.getElementById('supplierPhone').textContent = order.company_phone_number;
+                        document.getElementById('supplierAddress').textContent = order.company_address;
+
+                        // Set order information
+                        document.getElementById('orderDate').textContent = order.order_time;
+
+                        // Set salesperson information
+                        document.getElementById('salespersonName').textContent = order.salesperson_name || 'N/A';
+                        document.getElementById('salespersonPhone').textContent = order.salesperson_phone || 'N/A';
+
+                        // Set products
+                        const tbody = document.getElementById('orderProductsBody');
+                        tbody.innerHTML = '';
+                        products.forEach(product => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${product.product_name}</td>
+                                <td>${product.quantity}</td>
+                                <td>৳${product.total_price.toLocaleString()}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+
+                        // Set total amount at the bottom
+                        document.getElementById('totalAmount').textContent = `৳${order.total_amount.toLocaleString()}`;
+
+                        const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+                        modal.show();
+                    } else {
+                        showToast(data.message || 'Error loading order details', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('An error occurred while loading order details', 'error');
+                });
+        }
+
+        function printOrderDetails() {
+            const printWindow = window.open('', '_blank');
+            const modalContent = document.querySelector('#orderDetailsModal .modal-content').cloneNode(true);
+            
+            // Remove buttons and add print-specific styles
+            const footer = modalContent.querySelector('.modal-footer');
+            footer.remove();
+            
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Order Details</title>
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 20mm;
+                        }
+                        body { 
+                            font-family: Arial, sans-serif;
+                            line-height: 1.4;
+                            color: #333;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            color: #333;
+                            margin-bottom: 5px;
+                            font-size: 24px;
+                        }
+                        .info-section {
+                            margin-bottom: 30px;
+                        }
+                        .info-row {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 10px;
+                        }
+                        .info-group {
+                            flex: 1;
+                        }
+                        .info-group:first-child {
+                            margin-right: 20px;
+                        }
+                        .info-label {
+                            font-weight: bold;
+                            color: #666;
+                            margin-bottom: 2px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                        }
+                        th, td {
+                            padding: 8px;
+                            text-align: left;
+                            border: 1px solid #ddd;
+                        }
+                        th {
+                            background-color: #f5f5f5;
+                            font-weight: bold;
+                        }
+                        .total-section {
+                            text-align: right;
+                            margin-top: 20px;
+                            padding-top: 10px;
+                            border-top: 1px solid #333;
+                        }
+                        .total-section h3 {
+                            font-size: 18px;
+                            margin: 0;
+                        }
+                        .signature-section {
+                            margin-top: 40px;
+                            text-align: right;
+                        }
+                        .signature-line {
+                            width: 200px;
+                            border-top: 1px solid #333;
+                            margin-top: 30px;
+                            display: inline-block;
+                        }
+                        .signature-label {
+                            margin-top: 5px;
+                            font-size: 14px;
+                            color: #666;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Order Details</h1>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-row">
+                            <div class="info-group">
+                                <div class="info-label">Supplier Name</div>
+                                <div id="printSupplierName"></div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">Order Date</div>
+                                <div id="printOrderDate"></div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-group">
+                                <div class="info-label">Supplier Phone</div>
+                                <div id="printSupplierPhone"></div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">Supplier Address</div>
+                                <div id="printSupplierAddress"></div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-group">
+                                <div class="info-label">Salesperson Name</div>
+                                <div id="printSalespersonName"></div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">Salesperson Phone</div>
+                                <div id="printSalespersonPhone"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Total Price (৳)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="printOrderProductsBody">
+                        </tbody>
+                    </table>
+
+                    <div class="total-section">
+                        <h3>Total Amount: <span id="printTotalAmount"></span></h3>
+                    </div>
+
+                    <div class="signature-section">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Authorized Signature</div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            
+            // Copy data to print version
+            printWindow.document.getElementById('printSupplierName').textContent = document.getElementById('supplierName').textContent;
+            printWindow.document.getElementById('printSupplierPhone').textContent = document.getElementById('supplierPhone').textContent;
+            printWindow.document.getElementById('printSupplierAddress').textContent = document.getElementById('supplierAddress').textContent;
+            printWindow.document.getElementById('printOrderDate').textContent = document.getElementById('orderDate').textContent;
+            printWindow.document.getElementById('printSalespersonName').textContent = document.getElementById('salespersonName').textContent;
+            printWindow.document.getElementById('printSalespersonPhone').textContent = document.getElementById('salespersonPhone').textContent;
+            printWindow.document.getElementById('printTotalAmount').textContent = document.getElementById('totalAmount').textContent;
+
+            // Copy products table
+            const productsBody = document.getElementById('orderProductsBody');
+            const printProductsBody = printWindow.document.getElementById('printOrderProductsBody');
+            productsBody.querySelectorAll('tr').forEach(row => {
+                const newRow = printProductsBody.insertRow();
+                newRow.innerHTML = row.innerHTML;
+            });
+
+            printWindow.document.close();
+            printWindow.print();
         }
     </script>
 </body>

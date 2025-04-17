@@ -127,7 +127,7 @@ $productId = $_GET['product_id'] ?? 0;
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="4" class="text-end fw-bold">Grand Total:</td>
+                                    <td colspan="3" class="text-end fw-bold">Grand Total:</td>
                                     <td class="fw-bold" id="grandTotal">৳0.00</td>
                                 </tr>
                             </tfoot>
@@ -207,7 +207,7 @@ $productId = $_GET['product_id'] ?? 0;
             document.querySelectorAll('.order-row').forEach(row => {
                 const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
                 const price = parseFloat(row.querySelector('.price').value) || 0;
-                row.querySelector('.row-total').textContent = '৳' + price.toFixed(2);
+                // row.querySelector('.row-total').textContent = '৳' + price.toFixed(2);
                 total += price;
             });
             document.getElementById('grandTotal').textContent = '৳' + total.toFixed(2);
