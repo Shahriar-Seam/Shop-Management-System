@@ -31,7 +31,11 @@ $db = $database->getConnection();
                 <i class="fas fa-truck me-2"></i>
                 Suppliers
             </h2>
-            <div>
+            <div class="d-flex gap-2">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search suppliers...">
+                </div>
                 <button class="btn btn-success me-2" onclick="orderFromSupplier()">
                     <i class="fas fa-shopping-cart me-2"></i>Order
                 </button>
@@ -210,6 +214,33 @@ $db = $database->getConnection();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Function to filter suppliers
+        function filterSuppliers() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const cells = row.cells;
+                const supplierName = cells[0].textContent.toLowerCase();
+                const phone = cells[1].textContent.toLowerCase();
+                const address = cells[2].textContent.toLowerCase();
+                const salesperson = cells[3].textContent.toLowerCase();
+                const salespersonPhone = cells[4].textContent.toLowerCase();
+                
+                const searchMatch = !searchText || 
+                    supplierName.includes(searchText) || 
+                    phone.includes(searchText) || 
+                    address.includes(searchText) || 
+                    salesperson.includes(searchText) || 
+                    salespersonPhone.includes(searchText);
+                
+                row.style.display = searchMatch ? '' : 'none';
+            });
+        }
+
+        // Add event listener for search
+        document.getElementById('searchInput').addEventListener('input', filterSuppliers);
+
         // Function to open order modal
         function orderFromSupplier(supplierId) {
             const modal = document.createElement('div');
