@@ -360,6 +360,51 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else {
                     $debtAmount.removeClass('text-danger');
                 }
+
+                // Validate discount amount doesn't exceed total
+                validateDiscountAmount();
+
+                // Validate amount paid doesn't exceed total
+                validateAmountPaid();
+            }
+
+            // Function to validate discount amount
+            function validateDiscountAmount() {
+                let total = 0;
+                $('.subtotal').each(function() {
+                    const value = parseFloat($(this).val().replace('৳', '')) || 0;
+                    total += value;
+                });
+
+                const discount = parseFloat($('#discount').val()) || 0;
+                const $discountInput = $('#discount');
+                
+                if (discount > total) {
+                    $discountInput.addClass('is-invalid');
+                    $discountInput.after('<div class="invalid-feedback">Discount cannot exceed total amount</div>');
+                    return false;
+                } else {
+                    $discountInput.removeClass('is-invalid');
+                    $discountInput.next('.invalid-feedback').remove();
+                    return true;
+                }
+            }
+
+            // Function to validate amount paid
+            function validateAmountPaid() {
+                const total = parseFloat($('#total-amount').text().replace('৳', ''));
+                const amountPaid = parseFloat($('#amount_paid').val()) || 0;
+                const $amountPaidInput = $('#amount_paid');
+                
+                if (amountPaid > total) {
+                    $amountPaidInput.addClass('is-invalid');
+                    $amountPaidInput.after('<div class="invalid-feedback">Amount paid cannot exceed total amount</div>');
+                    return false;
+                } else {
+                    $amountPaidInput.removeClass('is-invalid');
+                    $amountPaidInput.next('.invalid-feedback').remove();
+                    return true;
+                }
             }
 
             // Update amounts when discount or amount paid changes

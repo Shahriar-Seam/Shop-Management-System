@@ -134,12 +134,14 @@ if (!$db) {
             bsModal.show();
 
             // Function to close modal and refresh table
-            window.closeOrderModal = function() {
+            window.closeOrderModal = function(success = false) {
                 console.log('closeOrderModal called');
                 bsModal.hide();
                 modal.remove();
-                showToast('Order placed successfully!', 'success');
-                refreshTable();
+                if (success) {
+                    showToast('Order placed successfully!', 'success');
+                    refreshTable();
+                }
             };
             
             // Remove modal on close

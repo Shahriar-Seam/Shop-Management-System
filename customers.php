@@ -366,8 +366,13 @@ $db = $database->getConnection();
         }
 
         function addPayment(customerId) {
+            // Get the customer's row and remaining debt
+            const customerRow = document.querySelector(`button[onclick="addPayment(${customerId})"]`).closest('tr');
+            const remainingDebt = parseFloat(customerRow.querySelector('.badge').textContent.replace('৳', '')) || 0;
+            
             document.getElementById('paymentCustomerId').value = customerId;
             document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentAmount').setAttribute('max', remainingDebt);
             
             // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('addPaymentModal'));
@@ -376,8 +381,39 @@ $db = $database->getConnection();
 
         function submitPayment() {
             const formData = new FormData();
-            formData.append('customer_id', document.getElementById('paymentCustomerId').value);
-            formData.append('amount', document.getElementById('paymentAmount').value);
+            const amountInput = document.getElementById('paymentAmount');
+            const amount = parseFloat(amountInput.value) || 0;
+            const customerId = document.getElementById('paymentCustomerId').value;
+            const maxAmount = parseFloat(amountInput.getAttribute('max')) || 0;
+
+            // Reset validation state
+            amountInput.classList.remove('is-invalid');
+            const existingFeedback = amountInput.nextElementSibling;
+            if (existingFeedback && existingFeedback.classList.contains('invalid-feedback')) {
+                existingFeedback.remove();
+            }
+
+            // Validate amount
+            if (amount <= 0) {
+                amountInput.classList.add('is-invalid');
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = 'Amount must be greater than 0';
+                amountInput.parentNode.appendChild(feedback);
+                return;
+            }
+
+            if (amount > maxAmount) {
+                amountInput.classList.add('is-invalid');
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = 'Amount cannot exceed remaining debt';
+                amountInput.parentNode.appendChild(feedback);
+                return;
+            }
+
+            formData.append('customer_id', customerId);
+            formData.append('amount', amount);
             formData.append('transaction_type', 'Debt Payment');
 
             fetch('process_debt_payment.php', {
@@ -406,6 +442,33 @@ $db = $database->getConnection();
                 showToast('An error occurred while adding the payment', 'error');
             });
         }
+
+        // Add real-time validation for payment amount
+        document.getElementById('paymentAmount')?.addEventListener('input', function() {
+            const amount = parseFloat(this.value) || 0;
+            const maxAmount = parseFloat(this.getAttribute('max')) || 0;
+            
+            // Reset validation state
+            this.classList.remove('is-invalid');
+            const existingFeedback = this.nextElementSibling;
+            if (existingFeedback && existingFeedback.classList.contains('invalid-feedback')) {
+                existingFeedback.remove();
+            }
+
+            if (amount <= 0) {
+                this.classList.add('is-invalid');
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = 'Amount must be greater than 0';
+                this.parentNode.appendChild(feedback);
+            } else if (amount > maxAmount) {
+                this.classList.add('is-invalid');
+                const feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                feedback.textContent = 'Amount cannot exceed remaining debt';
+                this.parentNode.appendChild(feedback);
+            }
+        });
 
         function showToast(message, type = 'success') {
             const toastContainer = document.getElementById('toast-container') || createToastContainer();

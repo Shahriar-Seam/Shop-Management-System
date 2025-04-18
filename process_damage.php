@@ -32,10 +32,31 @@ try {
     $db->beginTransaction();
 
     // Insert damage record
-    $query = "INSERT INTO DamagedProduct (product_id, quantity_damaged, damage_cost, refund_amount, action_taken, reason) 
-              VALUES (?, ?, ?, ?, ?, ?)";
+    $query = "INSERT INTO DamagedProduct (
+        product_id,
+        quantity_damaged,
+        damage_cost,
+        refund_amount,
+        action_taken,
+        reason,
+        damage_date
+    ) VALUES (
+        :product_id,
+        :quantity_damaged,
+        :damage_cost,
+        0,
+        'No Action',
+        :reason,
+        :damage_date
+    )";
     $stmt = $db->prepare($query);
-    $stmt->execute([$product_id, $quantity, $damage_cost, $refund_amount, $action_taken, $reason]);
+    $stmt->execute([
+        ':product_id' => $product_id,
+        ':quantity_damaged' => $quantity,
+        ':damage_cost' => $damage_cost,
+        ':reason' => $reason,
+        ':damage_date' => date('Y-m-d H:i:s')
+    ]);
 
     // Update product stock
     $update_query = "UPDATE Product SET stock_quantity = stock_quantity - ? WHERE product_id = ?";

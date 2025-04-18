@@ -164,6 +164,129 @@ if (!$db) {
                 </a>
             </div>
         </div>
+
+        <!-- Growth Chart Section -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">Daily Income & Expenses</h5>
+                            <select id="timePeriod" class="form-select" style="width: auto;">
+                                <option value="weekly">Daily</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <div style="height: 400px;">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let chart;
+        
+        function updateChart(period) {
+            fetch(`get_daily_transactions.php?period=${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (chart) {
+                        chart.destroy();
+                    }
+                    
+                    const ctx = document.getElementById('growthChart').getContext('2d');
+                    chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.dates,
+                            datasets: [
+                                {
+                                    label: 'Income (৳)',
+                                    data: data.income,
+                                    borderColor: 'rgba(40, 167, 69, 1)',
+                                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                                    tension: 0.4,
+                                    fill: true,
+                                    borderWidth: 2
+                                },
+                                {
+                                    label: 'Expenses (৳)',
+                                    data: data.expenses,
+                                    borderColor: 'rgba(220, 53, 69, 1)',
+                                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                                    tension: 0.4,
+                                    fill: true,
+                                    borderWidth: 2
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        usePointStyle: true,
+                                        padding: 20
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.dataset.label + ': ৳' + context.raw.toLocaleString();
+                                        }
+                                    },
+                                    padding: 10,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        drawBorder: false
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '৳' + value.toLocaleString();
+                                        },
+                                        padding: 10
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        padding: 10
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error loading chart data:', error));
+        }
+
+        // Initialize chart with weekly data
+        document.addEventListener('DOMContentLoaded', function() {
+            updateChart('weekly');
+            
+            // Add event listener for time period changes
+            document.getElementById('timePeriod').addEventListener('change', function() {
+                updateChart(this.value);
+            });
+        });
+    </script>
 </body>
 </html>

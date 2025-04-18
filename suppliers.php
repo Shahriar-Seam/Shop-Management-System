@@ -370,11 +370,13 @@ $db = $database->getConnection();
             bsModal.show();
             
             // Function to close modal and refresh table
-            window.closeOrderModal = function() {
+            window.closeOrderModal = function(success = false) {
                 console.log('closeOrderModal called');
                 bsModal.hide();
                 modal.remove();
-                showToast('Order placed successfully!', 'success');
+                if (success) {
+                    showToast('Order placed successfully!', 'success');
+                }
             };
             
             // Remove modal on close

@@ -7,7 +7,6 @@
         <a href="customers.php">Customers</a>
         <a href="damaged_products.php">Damaged Products</a>
         <a href="transactions.php">Transactions</a>
-        <a href="reports.php">Reports</a>
         <a href="javascript:void(0);" class="icon" onclick="Navigation()">
             <i class="fa fa-shop"></i>
         </a>

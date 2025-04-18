@@ -16,7 +16,7 @@ try {
     }
 
     // Insert new customer
-    $query = "INSERT INTO Customer (name, contact_info, debt_amount) VALUES (:name, :contact_info, 0)";
+    $query = "INSERT INTO Customer (name, contact_info) VALUES (:name, :contact_info)";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':name', $name);
     $stmt->bindParam(':contact_info', $contact_info);

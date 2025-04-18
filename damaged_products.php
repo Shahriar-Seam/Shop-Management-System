@@ -124,6 +124,16 @@ if (!$db) {
         </div>
     </main>
 
+    <!-- Chart Section -->
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Damage Analysis</h5>
+                <canvas id="damageChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Record Damage Modal -->
     <div class="modal fade" id="recordDamageModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -172,18 +182,6 @@ if (!$db) {
                                 <label class="form-label">Damage Cost</label>
                                 <input type="number" name="damage_cost" class="form-control" required min="0" step="0.01">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Refund Amount</label>
-                                <input type="number" name="refund_amount" class="form-control" min="0" step="0.01">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Action</label>
-                                <select name="action_taken" class="form-select" required>
-                                    <option value="No Action">No Action</option>
-                                    <option value="Refunded">Refunded</option>
-                                    <option value="Replaced">Replaced</option>
-                                </select>
-                            </div>
                             <div class="col-12">
                                 <label class="form-label">Reason</label>
                                 <textarea name="reason" class="form-control" rows="3"></textarea>
@@ -221,13 +219,13 @@ if (!$db) {
                             <!-- Refund Amount Field (shown when Refunded is selected) -->
                             <div class="mb-3" id="refundAmountField">
                                 <label class="form-label">Refund Amount</label>
-                                <input type="number" name="refund_amount" class="form-control" min="0" step="0.01">
+                                <input type="number" name="refund_amount" class="form-control" min="0" step="0.01" readonly>
                             </div>
                             
                             <!-- Replacement Quantity Field (shown when Replaced is selected) -->
                             <div class="mb-3 d-none" id="replacementQuantityField">
                                 <label class="form-label">Replacement Quantity</label>
-                                <input type="number" name="replacement_quantity" class="form-control" min="1">
+                                <input type="number" name="replacement_quantity" class="form-control" min="1" readonly>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -249,9 +247,29 @@ if (!$db) {
                 if (this.value === 'Refunded') {
                     refundAmountField.classList.remove('d-none');
                     replacementQuantityField.classList.add('d-none');
+                    
+                    // Get the row data and update refund amount
+                    const row = document.querySelector(`button[onclick="showActionModal(${document.getElementById('damageId').value})"]`).closest('tr');
+                    const damageCostCell = row.querySelector('td:nth-child(4)');
+                    const damageCostText = damageCostCell.textContent.trim();
+                    const damageCost = parseFloat(damageCostText.replace(/[^\d.-]/g, '')) || 0;
+                    
+                    const refundAmountInput = document.querySelector('#actionModal input[name="refund_amount"]');
+                    if (refundAmountInput) {
+                        refundAmountInput.value = damageCost;
+                    }
                 } else {
                     refundAmountField.classList.add('d-none');
                     replacementQuantityField.classList.remove('d-none');
+                    
+                    // Get the row data and update replacement quantity
+                    const row = document.querySelector(`button[onclick="showActionModal(${document.getElementById('damageId').value})"]`).closest('tr');
+                    const quantity = parseInt(row.querySelector('td:nth-child(3)').textContent) || 0;
+                    
+                    const replacementQuantityInput = document.querySelector('#actionModal input[name="replacement_quantity"]');
+                    if (replacementQuantityInput) {
+                        replacementQuantityInput.value = quantity;
+                    }
                 }
             });
 
@@ -340,7 +358,32 @@ if (!$db) {
         }
 
         function showActionModal(damageId) {
+            // Get the row data
+            const row = document.querySelector(`button[onclick="showActionModal(${damageId})"]`).closest('tr');
+            
+            // Get damage cost from the correct column (4th column - Damage Cost)
+            const damageCostCell = row.querySelector('td:nth-child(4)');
+            const damageCostText = damageCostCell.textContent.trim();
+            const damageCost = parseFloat(damageCostText.replace(/[^\d.-]/g, '')) || 0;
+            
+            const quantity = parseInt(row.querySelector('td:nth-child(3)').textContent) || 0;
+            
+            // Set the damage ID
             document.getElementById('damageId').value = damageId;
+            
+            // Set the refund amount input (using damage cost)
+            const refundAmountInput = document.querySelector('#actionModal input[name="refund_amount"]');
+            if (refundAmountInput) {
+                refundAmountInput.value = damageCost;
+            }
+            
+            // Set the replacement quantity input
+            const replacementQuantityInput = document.querySelector('#actionModal input[name="replacement_quantity"]');
+            if (replacementQuantityInput) {
+                replacementQuantityInput.value = quantity;
+            }
+            
+            // Show the modal
             const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
             actionModal.show();
         }
@@ -405,6 +448,56 @@ if (!$db) {
                 showToast('Error processing action: ' + error.message);
             }
         }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('damageChart').getContext('2d');
+            
+            // Fetch data for the chart
+            fetch('get_damage_chart_data.php')
+                .then(response => response.json())
+                .then(data => {
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Damage Cost (৳)',
+                                data: data.damageCosts,
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '৳' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return 'Damage Cost: ৳' + context.raw.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error loading chart data:', error));
+        });
     </script>
 </body>
 </html>

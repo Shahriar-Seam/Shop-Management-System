@@ -139,7 +139,7 @@ $productId = $_GET['product_id'] ?? 0;
                             <i class="fas fa-paper-plane me-2"></i> Place Order
                         </button>
                         <?php if($isPopup): ?>
-                        <button type="button" class="btn btn-secondary ms-2" onclick="window.parent.closeOrderModal()">
+                        <button type="button" class="btn btn-secondary ms-2" id="cancelButton">
                             <i class="fas fa-times me-2"></i> Cancel
                         </button>
                         <?php endif; ?>
@@ -213,9 +213,78 @@ $productId = $_GET['product_id'] ?? 0;
             document.getElementById('grandTotal').textContent = '৳' + total.toFixed(2);
         }
 
-        // Form submission
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
+        // Add cancel button handler
+        document.getElementById('cancelButton')?.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
+            if (window.parent && window.parent.closeOrderModal) {
+                window.parent.closeOrderModal();
+            }
+        });
+
+        // Function to validate quantity
+        function validateQuantity(input) {
+            const quantity = parseFloat(input.value) || 0;
+            const row = input.closest('.order-row');
+            const feedback = row.querySelector('.quantity-feedback');
+            
+            if (quantity <= 0) {
+                input.classList.add('is-invalid');
+                if (!feedback) {
+                    const div = document.createElement('div');
+                    div.className = 'invalid-feedback quantity-feedback';
+                    div.textContent = 'Quantity must be greater than 0';
+                    input.parentNode.appendChild(div);
+                }
+                return false;
+            } else {
+                input.classList.remove('is-invalid');
+                if (feedback) {
+                    feedback.remove();
+                }
+                return true;
+            }
+        }
+
+        // Add quantity validation on input and change
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('quantity')) {
+                validateQuantity(e.target);
+                calculateTotal();
+            }
+        });
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('quantity')) {
+                validateQuantity(e.target);
+                calculateTotal();
+            }
+        });
+
+        // Add form submission validation
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            let isValid = true;
+            let hasValidQuantity = false;
+            
+            document.querySelectorAll('.quantity').forEach(input => {
+                if (!validateQuantity(input)) {
+                    isValid = false;
+                } else if (parseFloat(input.value) > 0) {
+                    hasValidQuantity = true;
+                }
+            });
+
+            if (!isValid || !hasValidQuantity) {
+                e.preventDefault();
+                return;
+            }
+
+            const total = parseFloat(document.getElementById('grandTotal').textContent.replace('৳', ''));
+            if (total <= 0) {
+                e.preventDefault();
+                return;
+            }
+
             const formData = new FormData(this);
             const orderData = {
                 supplier_id: formData.get('supplier_id'),
@@ -256,7 +325,7 @@ $productId = $_GET['product_id'] ?? 0;
                 if(data.success) {
                     // Close the modal and refresh the parent window's table
                     if (window.parent && window.parent.closeOrderModal) {
-                        window.parent.closeOrderModal();
+                        window.parent.closeOrderModal(true);
                     } else {
                         console.error('Parent window or closeOrderModal function not found');
                     }
