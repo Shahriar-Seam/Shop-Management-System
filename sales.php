@@ -64,52 +64,19 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <form action="process_sale.php" method="POST">
         <!-- Customer Info (optional) -->
         <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center">
             <label for="customer_id" class="form-label">Customer (for credit sale)</label>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                    <i class="fas fa-plus"></i> Add New Customer
-                </button>
-            </div>
-            <select class="form-select select2-customer" id="customer_id" name="customer_id">
+                <select class="form-select select2-customer" id="customer_id" name="customer_id">
                 <option value="">Select customer (optional)</option>
-                <?php foreach ($customers as $customer): ?>
-                    <option value="<?php echo $customer['customer_id']; ?>">
-                        <?php echo htmlspecialchars($customer['name']); ?> 
-                        (<?php echo htmlspecialchars($customer['contact_info']); ?>)
-                    </option>
-                <?php endforeach; ?>
+                    <?php foreach ($customers as $customer): ?>
+                        <option value="<?php echo $customer['customer_id']; ?>">
+                            <?php echo htmlspecialchars($customer['name']); ?> 
+                            (<?php echo htmlspecialchars($customer['contact_info']); ?>)
+                        </option>
+                    <?php endforeach; ?>
             </select>
-            <div class="invalid-feedback" id="customer-error">
-                Customer must be selected for partial payment
-            </div>
-        </div>
-
-        <!-- Add Customer Modal -->
-        <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addCustomerModalLabel">Add New Customer</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="addCustomerForm">
-                            <div class="mb-3">
-                                <label for="new_customer_name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="new_customer_name" name="name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="new_customer_contact" class="form-label">Contact Info</label>
-                                <input type="text" class="form-control" id="new_customer_contact" name="contact_info" required>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="saveCustomerBtn">Save Customer</button>
-                    </div>
+                <div class="invalid-feedback" id="customer-error">
+                    Customer must be selected for partial payment
                 </div>
-            </div>
         </div>
 
         <!-- Product Selection -->
@@ -403,59 +370,6 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // Update amounts when product selection or quantity changes
             $(document).on('change input', '.product-select, .quantity-input', function() {
                 updateAllAmounts();
-            });
-
-            // Handle new customer form submission
-            $('#saveCustomerBtn').on('click', function() {
-                const formData = {
-                    name: $('#new_customer_name').val(),
-                    contact_info: $('#new_customer_contact').val()
-                };
-
-                $.ajax({
-                    url: 'process_customer.php',
-                    type: 'POST',
-                    data: formData,
-                    success: function(response) {
-                        console.log('Raw response:', response); // Debug log
-                        try {
-                            const result = JSON.parse(response);
-                            console.log('Parsed result:', result); // Debug log
-                            
-                            if (result.success) {
-                                // Add new customer to dropdown
-                                const newOption = new Option(
-                                    result.customer.name + ' (' + result.customer.contact_info + ')',
-                                    result.customer.customer_id,
-                                    true,
-                                    true
-                                );
-                                $('#customer_id').append(newOption).trigger('change');
-
-                                // Clear form and close modal
-                                $('#addCustomerForm')[0].reset();
-                                $('#addCustomerModal').modal('hide');
-
-                                // Show success message
-                                alert('Customer added successfully!');
-                            } else {
-                                alert('Error: ' + (result.message || 'Unknown error occurred'));
-                            }
-                        } catch (e) {
-                            console.error('Error parsing response:', e); // Debug log
-                            alert('Error: Invalid response from server. Please try again.');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('AJAX Error:', {xhr, status, error}); // Debug log
-                        alert('Error: Could not connect to server. Please try again.');
-                    }
-                });
-            });
-
-            // Reset form when modal is closed
-            $('#addCustomerModal').on('hidden.bs.modal', function() {
-                $('#addCustomerForm')[0].reset();
             });
         });
 
