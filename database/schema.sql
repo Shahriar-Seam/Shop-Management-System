@@ -87,13 +87,11 @@ CREATE TABLE OrderDetail (
 CREATE TABLE Sale (
     sale_id INT PRIMARY KEY AUTO_INCREMENT,
     customer_id INT DEFAULT NULL,
-    sale_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     total_amount DECIMAL(10,2) NOT NULL,
-    discount_amount DECIMAL(10,2) DEFAULT 0.00,
-    payment_status ENUM('Paid', 'Partial', 'Unpaid') NOT NULL DEFAULT 'Paid',
-
-    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+    discount_amount DECIMAL(10,2) DEFAULT 0,
+    sale_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
+);
 
 -- -----------------------------------------------------
 -- SaleDetail Table
