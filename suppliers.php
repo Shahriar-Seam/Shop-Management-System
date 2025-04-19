@@ -72,7 +72,8 @@ $db = $database->getConnection();
                                         FROM
                                             company c
                                         LEFT JOIN
-                                            salesperson s ON c.company_id = s.company_id AND s.status = 'Active';
+                                            salesperson s ON c.company_id = s.company_id AND s.status = 'Active'
+                                        ORDER BY c.company_id DESC;
 
                                 ";
                                 $stmt = $db->prepare($query);

@@ -26,14 +26,19 @@ $db = $database->getConnection();
 
     <!-- main -->
     <main class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>
-                <i class="fas fa-users me-2"></i>
-                Customers
-            </h2>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                <i class="fas fa-plus me-2"></i>Add Customer
-            </button>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Customers</h2>
+            <div class="d-flex gap-2">
+                <div class="input-group" style="width: 300px;">
+                    <input type="text" class="form-control" id="searchCustomer" placeholder="Search customers...">
+                    <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                    <i class="fas fa-plus me-2"></i>Add Customer
+                </button>
+            </div>
         </div>
 
         <div class="card">
@@ -277,9 +282,14 @@ $db = $database->getConnection();
             });
         });
 
-        // Function to fetch and display customers
-        function fetchCustomers() {
-            fetch('get_customers.php')
+        // Add search functionality
+        let searchTimeout;
+        const searchInput = document.getElementById('searchCustomer');
+        const searchButton = document.getElementById('searchButton');
+
+        function performSearch() {
+            const searchTerm = searchInput.value.trim();
+            fetch(`get_customers.php?search=${encodeURIComponent(searchTerm)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -287,26 +297,76 @@ $db = $database->getConnection();
                         tbody.innerHTML = '';
                         
                         data.customers.forEach(customer => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${customer.name}</td>
-                                <td>${customer.contact_info}</td>
-                                <td>
-                                    <span class="badge ${customer.total_debt_remaining > 0 ? 'bg-danger' : 'bg-success'}">
-                                        ৳${Number(customer.total_debt_remaining).toFixed(2)}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-info me-2" onclick="viewDebtHistory(${customer.customer_id})">
-                                        <i class="fas fa-history"></i> History
-                                    </button>
-                                    <button class="btn btn-sm btn-success" onclick="addPayment(${customer.customer_id})">
-                                        <i class="fas fa-money-bill"></i> Add Payment
-                                    </button>
-                                </td>
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${customer.name}</td>
+                                    <td>${customer.contact_info}</td>
+                                    <td>
+                                        <span class="badge ${customer.total_debt_remaining > 0 ? 'bg-danger' : 'bg-success'}">
+                                            ৳${Number(customer.total_debt_remaining).toFixed(2)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info me-2" onclick="viewDebtHistory(${customer.customer_id})">
+                                            <i class="fas fa-history me-1"></i>History
+                                        </button>
+                                        <button class="btn btn-sm btn-success" onclick="addPayment(${customer.customer_id})">
+                                            <i class="fas fa-money-bill me-1"></i>Add Payment
+                                        </button>
+                                    </td>
+                                </tr>
                             `;
-                            tbody.appendChild(row);
                         });
+                    } else {
+                        showToast('Error searching customers', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('An error occurred while searching customers', 'error');
+                });
+        }
+
+        // Add event listeners for search
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(performSearch, 300);
+        });
+
+        searchButton.addEventListener('click', performSearch);
+
+        // Modify the existing fetchCustomers function to accept search parameter
+        function fetchCustomers(searchTerm = '') {
+            fetch(`get_customers.php?search=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const tbody = document.getElementById('customersTableBody');
+                        tbody.innerHTML = '';
+                        
+                        data.customers.forEach(customer => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${customer.name}</td>
+                                    <td>${customer.contact_info}</td>
+                                    <td>
+                                        <span class="badge ${customer.total_debt_remaining > 0 ? 'bg-danger' : 'bg-success'}">
+                                            ৳${Number(customer.total_debt_remaining).toFixed(2)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info me-2" onclick="viewDebtHistory(${customer.customer_id})">
+                                            <i class="fas fa-history me-1"></i>History
+                                        </button>
+                                        <button class="btn btn-sm btn-success" onclick="addPayment(${customer.customer_id})">
+                                            <i class="fas fa-money-bill me-1"></i>Add Payment
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        showToast('Error loading customers', 'error');
                     }
                 })
                 .catch(error => {
@@ -314,9 +374,6 @@ $db = $database->getConnection();
                     showToast('An error occurred while loading customers', 'error');
                 });
         }
-
-        // Call fetchCustomers when the page loads
-        document.addEventListener('DOMContentLoaded', fetchCustomers);
 
         function viewDebtHistory(customerId) {
             // Show loading state
