@@ -167,7 +167,7 @@ $db = $database->getConnection();
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Add Payment</h5>
+                        <h5 class="modal-title">Add Payment for <span id="paymentCustomerName"></span></h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -193,6 +193,9 @@ $db = $database->getConnection();
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="debtHistoryModalLabel">Debt History</h5>
+                        <button type="button" class="btn btn-primary" onclick="printDebtHistory()">
+                            <i class="fas fa-print me-2"></i>Print
+                        </button>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -425,15 +428,11 @@ $db = $database->getConnection();
         function addPayment(customerId) {
             // Get the customer's row and remaining debt
             const customerRow = document.querySelector(`button[onclick="addPayment(${customerId})"]`).closest('tr');
+            const customerName = customerRow.querySelector('td:first-child').textContent;
             const remainingDebt = parseFloat(customerRow.querySelector('.badge').textContent.replace('৳', '')) || 0;
             
-            document.getElementById('paymentCustomerId').value = customerId;
-            document.getElementById('paymentAmount').value = '';
+            showAddPaymentModal(customerId, customerName);
             document.getElementById('paymentAmount').setAttribute('max', remainingDebt);
-            
-            // Show the modal
-            const modal = new bootstrap.Modal(document.getElementById('addPaymentModal'));
-            modal.show();
         }
 
         function submitPayment() {
@@ -552,6 +551,156 @@ $db = $database->getConnection();
             container.className = 'toast-container';
             document.body.appendChild(container);
             return container;
+        }
+
+        function showAddPaymentModal(customerId, customerName) {
+            document.getElementById('paymentCustomerId').value = customerId;
+            document.getElementById('paymentCustomerName').textContent = customerName;
+            document.getElementById('paymentAmount').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('addPaymentModal'));
+            modal.show();
+        }
+
+        function printDebtHistory() {
+            const printWindow = window.open('', '_blank');
+            
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Debt History</title>
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 20mm;
+                        }
+                        body { 
+                            font-family: Arial, sans-serif;
+                            line-height: 1.4;
+                            color: #333;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            color: #333;
+                            margin-bottom: 5px;
+                            font-size: 24px;
+                        }
+                        .debt-summary {
+                            margin-bottom: 30px;
+                        }
+                        .summary-cards {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 20px;
+                        }
+                        .summary-card {
+                            flex: 1;
+                            padding: 15px;
+                            background-color: #f8f9fa;
+                            border-radius: 5px;
+                            margin: 0 10px;
+                        }
+                        .summary-card:first-child {
+                            margin-left: 0;
+                        }
+                        .summary-card:last-child {
+                            margin-right: 0;
+                        }
+                        .summary-label {
+                            font-weight: bold;
+                            color: #666;
+                            margin-bottom: 5px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                        }
+                        th, td {
+                            padding: 8px;
+                            text-align: left;
+                            border: 1px solid #ddd;
+                        }
+                        th {
+                            background-color: #f5f5f5;
+                            font-weight: bold;
+                        }
+                        .signature-section {
+                            margin-top: 40px;
+                            text-align: right;
+                        }
+                        .signature-line {
+                            width: 200px;
+                            border-top: 1px solid #333;
+                            margin-top: 30px;
+                            display: inline-block;
+                        }
+                        .signature-label {
+                            margin-top: 5px;
+                            font-size: 14px;
+                            color: #666;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Debt History</h1>
+                        <h2>${document.getElementById('debtHistoryModalLabel').textContent}</h2>
+                    </div>
+
+                    <div class="debt-summary">
+                        <div class="summary-cards">
+                            <div class="summary-card">
+                                <div class="summary-label">Total Owed</div>
+                                <div>${document.getElementById('totalOwed').textContent}</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-label">Total Paid</div>
+                                <div>${document.getElementById('totalPaid').textContent}</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-label">Remaining Debt</div>
+                                <div>${document.getElementById('remainingDebt').textContent}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Sale Amount</th>
+                                <th>Discount</th>
+                                <th>Amount Owed</th>
+                                <th>Sale Payment</th>
+                                <th>Debt Payment</th>
+                                <th>Total Paid</th>
+                                <th>Remaining Due</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Array.from(document.getElementById('debtHistoryBody').querySelectorAll('tr'))
+                                .map(row => `<tr>${row.innerHTML}</tr>`)
+                                .join('')}
+                        </tbody>
+                    </table>
+
+                    <div class="signature-section">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Authorized Signature</div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
         }
     </script>
 </body>

@@ -324,14 +324,37 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // Form submission validation
             $('form').on('submit', function(e) {
                 let isValid = true;
+                let errorMessage = '';
+
+                // Validate quantities
                 $('.quantity-input').each(function() {
                     if (!validateQuantity(this)) {
                         isValid = false;
+                        errorMessage = 'Please correct the quantities to match available stock.';
                     }
                 });
+
+                // Validate discount
+                if (!validateDiscountAmount()) {
+                    isValid = false;
+                    errorMessage = 'Discount cannot exceed total amount.';
+                }
+
+                // Validate amount paid
+                if (!validateAmountPaid()) {
+                    isValid = false;
+                    errorMessage = 'Amount paid cannot exceed total amount.';
+                }
+
+                // Validate form (customer selection for partial payment)
+                if (!validateForm()) {
+                    isValid = false;
+                    errorMessage = 'Customer must be selected for partial payment.';
+                }
+
                 if (!isValid) {
                     e.preventDefault();
-                    alert('Please correct the quantities to match available stock.');
+                    showToast(errorMessage, 'danger');
                 }
             });
 
@@ -368,6 +391,31 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 validateAmountPaid();
             }
 
+            // Function to validate amount paid
+            function validateAmountPaid() {
+                let total = 0;
+                $('.subtotal').each(function() {
+                    const value = parseFloat($(this).val().replace('৳', '')) || 0;
+                    total += value;
+                });
+
+                const amountPaid = parseFloat($('#amount_paid').val()) || 0;
+                const $amountPaidInput = $('#amount_paid');
+                const $existingFeedback = $amountPaidInput.next('.invalid-feedback');
+                
+                if (amountPaid > total) {
+                    $amountPaidInput.addClass('is-invalid');
+                    if ($existingFeedback.length === 0) {
+                        $amountPaidInput.after('<div class="invalid-feedback">Amount paid cannot exceed total amount</div>');
+                    }
+                    return false;
+                } else {
+                    $amountPaidInput.removeClass('is-invalid');
+                    $existingFeedback.remove();
+                    return true;
+                }
+            }
+
             // Function to validate discount amount
             function validateDiscountAmount() {
                 let total = 0;
@@ -378,31 +426,17 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 const discount = parseFloat($('#discount').val()) || 0;
                 const $discountInput = $('#discount');
+                const $existingFeedback = $discountInput.next('.invalid-feedback');
                 
                 if (discount > total) {
                     $discountInput.addClass('is-invalid');
-                    $discountInput.after('<div class="invalid-feedback">Discount cannot exceed total amount</div>');
+                    if ($existingFeedback.length === 0) {
+                        $discountInput.after('<div class="invalid-feedback">Discount cannot exceed total amount</div>');
+                    }
                     return false;
                 } else {
                     $discountInput.removeClass('is-invalid');
-                    $discountInput.next('.invalid-feedback').remove();
-                    return true;
-                }
-            }
-
-            // Function to validate amount paid
-            function validateAmountPaid() {
-                const total = parseFloat($('#total-amount').text().replace('৳', ''));
-                const amountPaid = parseFloat($('#amount_paid').val()) || 0;
-                const $amountPaidInput = $('#amount_paid');
-                
-                if (amountPaid > total) {
-                    $amountPaidInput.addClass('is-invalid');
-                    $amountPaidInput.after('<div class="invalid-feedback">Amount paid cannot exceed total amount</div>');
-                    return false;
-                } else {
-                    $amountPaidInput.removeClass('is-invalid');
-                    $amountPaidInput.next('.invalid-feedback').remove();
+                    $existingFeedback.remove();
                     return true;
                 }
             }
@@ -465,13 +499,6 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Add event listeners for amount paid and customer selection
         $('#amount_paid, #customer_id').on('input change', validateForm);
-
-        // Add form submission validation
-        $('form').on('submit', function(e) {
-            if (!validateForm()) {
-                e.preventDefault();
-            }
-        });
     </script>
 </body>
 </html>
