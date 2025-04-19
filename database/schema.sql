@@ -1,5 +1,4 @@
 -- Shop Management System Database Schema
--- Author: Anonymous
 -- -----------------------------------------------------
 
 -- -----------------------------------------------------
@@ -90,8 +89,8 @@ CREATE TABLE Sale (
     total_amount DECIMAL(10,2) NOT NULL,
     discount_amount DECIMAL(10,2) DEFAULT 0,
     sale_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
-);
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 -- -----------------------------------------------------
 -- SaleDetail Table
