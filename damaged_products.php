@@ -124,16 +124,6 @@ if (!$db) {
         </div>
     </main>
 
-    <!-- Chart Section -->
-    <div class="container mt-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Damage Analysis</h5>
-                <canvas id="damageChart"></canvas>
-            </div>
-        </div>
-    </div>
-
     <!-- Record Damage Modal -->
     <div class="modal fade" id="recordDamageModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -448,56 +438,6 @@ if (!$db) {
                 showToast('Error processing action: ' + error.message);
             }
         }
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Chart initialization
-        document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('damageChart').getContext('2d');
-            
-            // Fetch data for the chart
-            fetch('get_damage_chart_data.php')
-                .then(response => response.json())
-                .then(data => {
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: data.labels,
-                            datasets: [{
-                                label: 'Damage Cost (৳)',
-                                data: data.damageCosts,
-                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                                borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return '৳' + value.toLocaleString();
-                                        }
-                                    }
-                                }
-                            },
-                            plugins: {
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return 'Damage Cost: ৳' + context.raw.toLocaleString();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                })
-                .catch(error => console.error('Error loading chart data:', error));
-        });
     </script>
 </body>
 </html>
