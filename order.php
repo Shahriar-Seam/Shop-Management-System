@@ -229,19 +229,19 @@ $productId = $_GET['product_id'] ?? 0;
             const feedback = row.querySelector('.quantity-feedback');
             
             if (quantity <= 0) {
-                input.classList.add('is-invalid');
-                if (!feedback) {
-                    const div = document.createElement('div');
-                    div.className = 'invalid-feedback quantity-feedback';
-                    div.textContent = 'Quantity must be greater than 0';
-                    input.parentNode.appendChild(div);
-                }
+                // input.classList.add('is-invalid');
+                // if (!feedback) {
+                //     const div = document.createElement('div');
+                //     div.className = 'invalid-feedback quantity-feedback';
+                //     div.textContent = 'Quantity must be greater than 0';
+                //     input.parentNode.appendChild(div);
+                // }
                 return false;
             } else {
-                input.classList.remove('is-invalid');
-                if (feedback) {
-                    feedback.remove();
-                }
+                // input.classList.remove('is-invalid');
+                // if (feedback) {
+                //     feedback.remove();
+                // }
                 return true;
             }
         }
@@ -263,19 +263,23 @@ $productId = $_GET['product_id'] ?? 0;
 
         // Add form submission validation
         document.getElementById('orderForm').addEventListener('submit', function(e) {
-            let isValid = true;
+            let isValid = false;
             let hasValidQuantity = false;
             
             document.querySelectorAll('.quantity').forEach(input => {
-                if (!validateQuantity(input)) {
-                    isValid = false;
-                } else if (parseFloat(input.value) > 0) {
+                if (validateQuantity(input)) {
+                    isValid = true;
+                }
+                if (parseFloat(input.value) > 0) {
                     hasValidQuantity = true;
                 }
             });
 
             if (!isValid || !hasValidQuantity) {
                 e.preventDefault();
+                if (!hasValidQuantity) {
+                    showToast('Please add at least one product with quantity greater than 0', 'danger');
+                }
                 return;
             }
 
@@ -326,6 +330,7 @@ $productId = $_GET['product_id'] ?? 0;
                     // Close the modal and refresh the parent window's table
                     if (window.parent && window.parent.closeOrderModal) {
                         window.parent.closeOrderModal(true);
+                        showToast('Order placed successfully', 'success');
                     } else {
                         console.error('Parent window or closeOrderModal function not found');
                     }
