@@ -40,11 +40,19 @@ try {
                 WHERE transaction_type = 'Sale Payment' 
                 AND reference_id = s.sale_id
             ), 0)) as remaining_due,
-            s.sale_id
+            s.sale_id,
+            GROUP_CONCAT(
+                CONCAT(p.name, ' (', sd.quantity, ' x ৳', sd.price_per_unit, ')')
+                SEPARATOR '||'
+            ) as items
         FROM 
             Sale s
+        LEFT JOIN SaleDetail sd ON s.sale_id = sd.sale_id
+        LEFT JOIN Product p ON sd.product_id = p.product_id
         WHERE 
             s.customer_id = :customer_id
+        GROUP BY 
+            s.sale_id, s.sale_time, s.total_amount, s.discount_amount
     )
     UNION ALL
     (
@@ -58,7 +66,8 @@ try {
             t.amount_paid as debt_payment,
             t.amount_paid as total_paid,
             NULL as remaining_due,
-            NULL as sale_id
+            NULL as sale_id,
+            NULL as items
         FROM 
             Transaction t
         WHERE 
@@ -84,7 +93,8 @@ try {
             'debt_payment' => number_format($row['debt_payment'], 2),
             'total_paid' => number_format($row['total_paid'], 2),
             'remaining_due' => $row['remaining_due'] ? number_format($row['remaining_due'], 2) : '-',
-            'sale_id' => $row['sale_id']
+            'sale_id' => $row['sale_id'],
+            'items' => $row['items'] ?: '-'
         ];
     }
 

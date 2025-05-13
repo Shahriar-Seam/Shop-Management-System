@@ -30,7 +30,7 @@ $productId = $_GET['product_id'] ?? 0;
         }
     </style>
     <?php endif; ?>
-    <link rel="icon" type="image/x-icon" href="assets/icon.jpg">
+    <link rel="icon" type="image/png" href="assets/image.png">
     <link rel="stylesheet" href="assets/style.css">
     <script src="assets/script.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">

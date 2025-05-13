@@ -22,7 +22,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Sale</title>
-    <link rel="icon" type="image/x-icon" href="assets/icon.jpg">
+    <link rel="icon" type="image/png" href="assets/image.png">
     <link rel="stylesheet" href="assets/style.css">
     <script src="assets/script.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -150,6 +150,10 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="salesHistoryModalLabel">Sales History</h5>
+                        &nbsp;
+                        <button type="button" class="btn btn-primary" onclick="printSalesHistory()">
+                            <i class="fas fa-print me-2"></i>Print
+                        </button>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -620,6 +624,111 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     showToast('Error loading sales history: ' + error, 'danger');
                 }
             });
+        }
+
+        function printSalesHistory() {
+            const printWindow = window.open('', '_blank');
+            
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Sales History</title>
+                    <style>
+                        @page {
+                            size: landscape;
+                            margin: 10mm;
+                        }
+                        body { 
+                            font-family: Arial, sans-serif;
+                            line-height: 1.4;
+                            color: #333;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            color: #333;
+                            margin-bottom: 5px;
+                            font-size: 24px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                            font-size: 12px;
+                        }
+                        th, td {
+                            padding: 6px;
+                            text-align: left;
+                            border: 1px solid #ddd;
+                            vertical-align: top;
+                        }
+                        th {
+                            background-color: #f5f5f5;
+                            font-weight: bold;
+                            white-space: nowrap;
+                        }
+                        .items-cell {
+                            white-space: pre-line;
+                            max-width: 300px;
+                        }
+                        .signature-section {
+                            margin-top: 40px;
+                            text-align: right;
+                        }
+                        .signature-line {
+                            width: 200px;
+                            border-top: 1px solid #333;
+                            margin-top: 30px;
+                            display: inline-block;
+                        }
+                        .signature-label {
+                            margin-top: 5px;
+                            font-size: 14px;
+                            color: #666;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Sales History</h1>
+                        <p>Generated on: ${new Date().toLocaleString()}</p>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Discount</th>
+                                <th>Paid</th>
+                                <th>Debt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Array.from(document.getElementById('salesHistoryTable').querySelectorAll('tbody tr'))
+                                .map(row => `<tr>${row.innerHTML}</tr>`)
+                                .join('')}
+                        </tbody>
+                    </table>
+
+                    <div class="signature-section">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Authorized Signature</div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
         }
     </script>
 

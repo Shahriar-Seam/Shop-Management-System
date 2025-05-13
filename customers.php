@@ -11,8 +11,8 @@ $db = $database->getConnection();
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Management</title>
-    <link rel="icon" type="image/x-icon" href="assets/icon.jpg">
+    <title>Customers</title>
+    <link rel="icon" type="image/png" href="assets/image.png">
     <link rel="stylesheet" href="assets/style.css">
     <script src="assets/script.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -189,10 +189,11 @@ $db = $database->getConnection();
 
         <!-- Debt History Modal -->
         <div class="modal fade" id="debtHistoryModal" tabindex="-1">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="debtHistoryModalLabel">Debt History</h5>
+                        &nbsp;
                         <button type="button" class="btn btn-primary" onclick="printDebtHistory()">
                             <i class="fas fa-print me-2"></i>Print
                         </button>
@@ -231,15 +232,16 @@ $db = $database->getConnection();
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Type</th>
-                                        <th>Sale Amount</th>
-                                        <th>Discount</th>
-                                        <th>Amount Owed</th>
-                                        <th>Sale Payment</th>
-                                        <th>Debt Payment</th>
-                                        <th>Total Paid</th>
-                                        <th>Remaining Due</th>
+                                        <th style="width: 10%">Date</th>
+                                        <th style="width: 8%">Type</th>
+                                        <th style="width: 25%">Items</th>
+                                        <th style="width: 8%">Sale</th>
+                                        <th style="width: 8%">Discount</th>
+                                        <th style="width: 8%">Owed</th>
+                                        <th style="width: 8%">Sale Pay</th>
+                                        <th style="width: 8%">Debt Pay</th>
+                                        <th style="width: 8%">Total Paid</th>
+                                        <th style="width: 9%">Remaining</th>
                                     </tr>
                                 </thead>
                                 <tbody id="debtHistoryBody">
@@ -406,6 +408,7 @@ $db = $database->getConnection();
                                 <tr>
                                     <td>${record.transaction_date}</td>
                                     <td>${record.transaction_type}</td>
+                                    <td>${record.items.split('||').join('<br>')}</td>
                                     <td>${record.total_amount}</td>
                                     <td>${record.discount_amount}</td>
                                     <td>${record.amount_owed}</td>
@@ -619,15 +622,22 @@ $db = $database->getConnection();
                             width: 100%;
                             border-collapse: collapse;
                             margin: 20px 0;
+                            font-size: 14px;
                         }
                         th, td {
                             padding: 8px;
                             text-align: left;
                             border: 1px solid #ddd;
+                            vertical-align: top;
                         }
                         th {
                             background-color: #f5f5f5;
                             font-weight: bold;
+                            white-space: nowrap;
+                        }
+                        .items-cell {
+                            white-space: pre-line;
+                            max-width: 300px;
                         }
                         .signature-section {
                             margin-top: 40px;
@@ -643,6 +653,35 @@ $db = $database->getConnection();
                             margin-top: 5px;
                             font-size: 14px;
                             color: #666;
+                        }
+                        @media print {
+                            @page {
+                                size: landscape;
+                                margin: 10mm;
+                            }
+                            body {
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .header {
+                                margin-bottom: 10px;
+                            }
+                            .debt-summary {
+                                margin-bottom: 15px;
+                            }
+                            .summary-cards {
+                                margin-bottom: 10px;
+                            }
+                            .summary-card {
+                                padding: 8px;
+                                margin: 0 5px;
+                            }
+                            table {
+                                margin: 10px 0;
+                            }
+                            th, td {
+                                padding: 4px;
+                            }
                         }
                     </style>
                 </head>
@@ -672,20 +711,36 @@ $db = $database->getConnection();
                     <table>
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Sale Amount</th>
-                                <th>Discount</th>
-                                <th>Amount Owed</th>
-                                <th>Sale Payment</th>
-                                <th>Debt Payment</th>
-                                <th>Total Paid</th>
-                                <th>Remaining Due</th>
+                                <th style="width: 10%">Date</th>
+                                <th style="width: 8%">Type</th>
+                                <th style="width: 25%">Items</th>
+                                <th style="width: 8%">Sale</th>
+                                <th style="width: 8%">Discount</th>
+                                <th style="width: 8%">Owed</th>
+                                <th style="width: 8%">Sale Pay</th>
+                                <th style="width: 8%">Debt Pay</th>
+                                <th style="width: 8%">Total Paid</th>
+                                <th style="width: 9%">Remaining</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${Array.from(document.getElementById('debtHistoryBody').querySelectorAll('tr'))
-                                .map(row => `<tr>${row.innerHTML}</tr>`)
+                                .map(row => {
+                                    const cells = Array.from(row.cells);
+                                    const itemsCell = cells[2];
+                                    return `<tr>
+                                        <td>${cells[0].textContent}</td>
+                                        <td>${cells[1].textContent}</td>
+                                        <td class="items-cell">${itemsCell.innerHTML.replace(/<br>/g, '\n')}</td>
+                                        <td>${cells[3].textContent}</td>
+                                        <td>${cells[4].textContent}</td>
+                                        <td>${cells[5].textContent}</td>
+                                        <td>${cells[6].textContent}</td>
+                                        <td>${cells[7].textContent}</td>
+                                        <td>${cells[8].textContent}</td>
+                                        <td>${cells[9].textContent}</td>
+                                    </tr>`;
+                                })
                                 .join('')}
                         </tbody>
                     </table>
