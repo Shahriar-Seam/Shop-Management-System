@@ -59,7 +59,12 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         <?php endif; ?>
 
-        <h2 class="mb-4">Create New Sale</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Create New Sale</h2>
+            <button type="button" class="btn btn-info" id="viewSalesHistory">
+                <i class="fas fa-history"></i> View Sales History
+            </button>
+        </div>
 
         <form action="process_sale.php" method="POST">
         <!-- Customer Info (optional) -->
@@ -138,6 +143,38 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <button type="submit" class="btn btn-primary" id="submit-btn">Confirm Sale</button>
         </div>
         </form>
+
+        <!-- Sales History Modal -->
+        <div class="modal fade" id="salesHistoryModal" tabindex="-1" aria-labelledby="salesHistoryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="salesHistoryModalLabel">Sales History</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="salesHistoryTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Discount</th>
+                                        <th>Paid</th>
+                                        <th>Debt</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Sales history will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Scripts -->
@@ -362,7 +399,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             function updateAllAmounts() {
                 let total = 0;
                 $('.subtotal').each(function() {
-                    const value = parseFloat($(this).val().replace('৳', '')) || 0;
+                    const value = parseFloat($(this).val().replace('৳', '').replace(',', '')) || 0;
                     total += value;
                 });
                 
@@ -395,7 +432,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             function validateAmountPaid() {
                 let total = 0;
                 $('.subtotal').each(function() {
-                    const value = parseFloat($(this).val().replace('৳', '')) || 0;
+                    const value = parseFloat($(this).val().replace('৳', '').replace(',', '')) || 0;
                     total += value;
                 });
 
@@ -420,7 +457,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             function validateDiscountAmount() {
                 let total = 0;
                 $('.subtotal').each(function() {
-                    const value = parseFloat($(this).val().replace('৳', '')) || 0;
+                    const value = parseFloat($(this).val().replace('৳', '').replace(',', '')) || 0;
                     total += value;
                 });
 
@@ -472,7 +509,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         function updateTotal() {
             let total = 0;
             $('.subtotal').each(function() {
-                const value = parseFloat($(this).val().replace('৳', '')) || 0;
+                const value = parseFloat($(this).val().replace('৳', '').replace(',', '')) || 0;
                 total += value;
             });
             
@@ -484,7 +521,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         function validateForm() {
-            const total = parseFloat($('#total-amount').text().replace('৳', ''));
+            const total = parseFloat($('#total-amount').text().replace('৳', '').replace(',', ''));
             const amountPaid = parseFloat($('#amount_paid').val()) || 0;
             const $customerSelect = $('#customer_id');
             
@@ -499,6 +536,129 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Add event listeners for amount paid and customer selection
         $('#amount_paid, #customer_id').on('input change', validateForm);
+
+        // Sales History Functionality
+        const salesHistoryModal = new bootstrap.Modal(document.getElementById('salesHistoryModal'));
+        
+        $('#viewSalesHistory').on('click', function() {
+            loadSalesHistory();
+            salesHistoryModal.show();
+        });
+
+        function loadSalesHistory() {
+            $.ajax({
+                url: 'get_sales_history.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        const tbody = $('#salesHistoryTable tbody');
+                        tbody.empty();
+
+                        if (response.data.length === 0) {
+                            const row = $('<tr>');
+                            row.append($('<td colspan="7" class="text-center">').text('No sales history found'));
+                            tbody.append(row);
+                            return;
+                        }
+
+                        response.data.forEach(sale => {
+                            try {
+                                const row = $('<tr>');
+                                
+                                // Date column
+                                row.append($('<td>').text(sale.date));
+                                
+                                // Customer column
+                                let customerInfo = sale.customer || 'Walk-in Customer';
+                                if (sale.contact && sale.contact !== 'N/A') {
+                                    customerInfo += ` (${sale.contact})`;
+                                }
+                                row.append($('<td>').text(customerInfo));
+                                
+                                // Items column
+                                const itemsList = $('<ul>').addClass('list-unstyled mb-0');
+                                if (Array.isArray(sale.items) && sale.items.length > 0) {
+                                    sale.items.forEach(item => {
+                                        itemsList.append($('<li>').text(item));
+                                    });
+                                } else {
+                                    itemsList.append($('<li>').text('No items found'));
+                                }
+                                row.append($('<td>').append(itemsList));
+                                
+                                // Total column
+                                row.append($('<td>').text('৳' + (sale.total || '0.00')));
+                                
+                                // Discount column
+                                row.append($('<td>').text('৳' + (sale.discount || '0.00')));
+                                
+                                // Amount Paid column
+                                row.append($('<td>').text('৳' + (sale.amount_paid || '0.00')));
+                                
+                                // Debt column
+                                const debtCell = $('<td>');
+                                const debt = parseFloat(sale.debt) || 0;
+                                if (debt > 0) {
+                                    debtCell.addClass('text-danger').text('৳' + sale.debt);
+                                } else {
+                                    debtCell.text('৳0.00');
+                                }
+                                row.append(debtCell);
+                                
+                                tbody.append(row);
+                            } catch (error) {
+                                console.error('Error processing sale:', error, sale);
+                            }
+                        });
+                    } else {
+                        showToast('Error loading sales history: ' + (response.message || 'Unknown error'), 'danger');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', {xhr, status, error});
+                    showToast('Error loading sales history: ' + error, 'danger');
+                }
+            });
+        }
+    </script>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastBody = toast.querySelector('.toast-body');
+            
+            // Set message
+            toastBody.textContent = message;
+            
+            // Set background color based on type
+            toast.className = 'toast';
+            if (type === 'success') {
+                toast.classList.add('bg-success', 'text-white');
+            } else if (type === 'error' || type === 'danger') {
+                toast.classList.add('bg-danger', 'text-white');
+            } else if (type === 'warning') {
+                toast.classList.add('bg-warning');
+            } else {
+                toast.classList.add('bg-info', 'text-white');
+            }
+            
+            // Show toast
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
     </script>
 </body>
 </html>

@@ -429,7 +429,7 @@ $db = $database->getConnection();
             // Get the customer's row and remaining debt
             const customerRow = document.querySelector(`button[onclick="addPayment(${customerId})"]`).closest('tr');
             const customerName = customerRow.querySelector('td:first-child').textContent;
-            const remainingDebt = parseFloat(customerRow.querySelector('.badge').textContent.replace('৳', '')) || 0;
+            const remainingDebt = parseFloat(customerRow.querySelector('.badge').textContent.replace('৳', '').replace(',', '')) || 0;
             
             showAddPaymentModal(customerId, customerName);
             document.getElementById('paymentAmount').setAttribute('max', remainingDebt);

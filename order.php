@@ -283,7 +283,7 @@ $productId = $_GET['product_id'] ?? 0;
                 return;
             }
 
-            const total = parseFloat(document.getElementById('grandTotal').textContent.replace('৳', ''));
+            const total = parseFloat(document.getElementById('grandTotal').textContent.replace('৳', '').replace(',', ''));
             if (total <= 0) {
                 e.preventDefault();
                 return;
