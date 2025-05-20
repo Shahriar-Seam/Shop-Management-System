@@ -48,7 +48,7 @@ A comprehensive web-based shop management system built with PHP and MySQL, desig
       - Select the "shop_db" database from the left sidebar
       - Click the "Import" tab at the top
       - Click "Choose File" and select `database/schema.sql`
-      - Scroll down to "Format-specific options"
+      - Scroll down to "other options"
       - Uncheck the box for "Enable foreign key checks"
       - Click "Import"
    
