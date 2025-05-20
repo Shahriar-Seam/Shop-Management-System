@@ -17,8 +17,8 @@ A comprehensive web-based shop management system built with PHP and MySQL, desig
 
 ## Prerequisites
 
-- PHP 7.4 or higher
-- MySQL 5.7 or higher
+- PHP 8.3.14 or higher
+- MySQL 9.1 or higher
 - Web Server (Apache/WAMP/XAMPP)
 
 ## Installation
@@ -49,30 +49,27 @@ A comprehensive web-based shop management system built with PHP and MySQL, desig
       - Click the "Import" tab at the top
       - Click "Choose File" and select `database/schema.sql`
       - Scroll down to "other options"
-      - Uncheck the box for "Enable foreign key checks"
+      - # Uncheck the box for "Enable foreign key checks"
       - Click "Import"
    
    5. (Optional) Import sample data:
       - Repeat the import process
       - Select `database/sample-data.sql`
-      - Make sure "Enable foreign key checks" is unchecked
+      - # Make sure "Enable foreign key checks" is unchecked
       - Click "Import"
 
    ### Using MySQL Command Line (Alternative)
+   You must have mysql executable on the system path. <br>
+   Run the commands from the Shop-Management-System folder.
    ```bash
-   # Log in to MySQL and create a new database
-   mysql -u root -p
-   CREATE DATABASE shop_db;
-   USE shop_db;
-   
    # Import the database schema
-   mysql -u root -p shop_db < database/schema.sql
+   mysql --init-command="SET SESSION FOREIGN_KEY_CHECKS=0;" -u root -p < database/schema.sql
    
    # (Optional) Import sample data
-   mysql -u root -p shop_db < database/sample-data.sql
+   mysql --init-command="SET SESSION FOREIGN_KEY_CHECKS=0;" -u root -p < database/sample-data.sql
    ```
 
-3. **Configure Database Connection**
+4. **Configure Database Connection**
    - Open `assets/database.php` and update the database credentials:
      ```php
      define('DB_HOST', 'localhost');
