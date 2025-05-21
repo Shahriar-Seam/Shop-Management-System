@@ -153,3 +153,5 @@ This project is built by students from the Computer Science and Engineering disc
 - **Md. Mustafizur Rahman**
   - Student ID: 230233
 
+## Known Bug
+- Sometimes the input fields may become unresponsive. Due to lack of knowledge i couldn't debug it. However closing and reopening the browser fixes the issue.
