@@ -155,3 +155,6 @@ This project is built by students from the Computer Science and Engineering disc
 
 ## Known Bug
 - Sometimes the input fields may become unresponsive. Due to lack of knowledge i couldn't debug it. However closing and reopening the browser fixes the issue.
+
+## Note on AI Usage
+AI tools such as Claude, ChatGPT, and Gemini were used extensively throughout the development of this Shop Management System. They assisted with code generation, debugging, refining logic, and improving overall understanding. These tools significantly improved the efficiency and quality of the final product.
